@@ -1,34 +1,55 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+
 
 public class Hero : MonoBehaviour
 {
     [SerializeField] private float _speed = 1f;
+    [SerializeField] private float _jumpPower = 1f;
 
-        private Vector2 _direction;
+    private Rigidbody2D _rigidbody;
+    private Vector2 _direction;
 
-        private void Update()
+    [SerializeField] private LayerCheck _groundCheck;
+
+
+    private void Awake()
+    {
+        _rigidbody = GetComponent<Rigidbody2D>();
+    }
+
+    private void FixedUpdate()
+    {
+        _rigidbody.velocity = new Vector2(_direction.x * _speed, _rigidbody.velocity.y);
+
+        var isJumping = _direction.y > 0;
+        if (isJumping)
         {
-            Movement();
-        }
-
-        public void Movement()
-        {
-            if (_direction.magnitude > 0)
+            if (IsGrounded())
             {
-                var delta = _direction * _speed * Time.deltaTime;
-                transform.position += new Vector3(delta.x, delta.y, transform.position.z);
+                _rigidbody.AddForce(Vector2.up * _jumpPower, ForceMode2D.Impulse);
             }
-        }
 
-        public void SetDirection(Vector2 direction)
-        {
-            _direction = direction;
         }
+        else if (_rigidbody.velocity.y > 0)
+        {
+            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _rigidbody.velocity.y * 0.5f);
+        }
+    }
 
-        public void SaySomething()
-        {
-            Debug.Log("Fire!");
-        }
+    private bool IsGrounded()
+    {
+        return _groundCheck.isTouchingLayer;
+    }
+
+    public void SetDirection(Vector2 direction)
+    {
+        _direction = direction;
+    }
+
+    public void SaySomething()
+    {
+        Debug.Log("Fire!");
+    }
+
+
 }
