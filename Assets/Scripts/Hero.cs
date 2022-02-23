@@ -5,11 +5,17 @@ public class Hero : MonoBehaviour
 {
     [SerializeField] private float _speed = 1f;
     [SerializeField] private float _jumpPower = 1f;
+   
+    
+   
 
     private Rigidbody2D _rigidbody;
     private Vector2 _direction;
 
     [SerializeField] private LayerCheck _groundCheck;
+    public static int totalScore;
+ 
+   
 
 
     private void Awake()
@@ -35,6 +41,11 @@ public class Hero : MonoBehaviour
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _rigidbody.velocity.y * 0.5f);
         }
     }
+  
+    
+    
+   
+    
 
     private bool IsGrounded()
     {
@@ -50,6 +61,7 @@ public class Hero : MonoBehaviour
     {
         Debug.Log("Fire!");
     }
+  
 
 
 }

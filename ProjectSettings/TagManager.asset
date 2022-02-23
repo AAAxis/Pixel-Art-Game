@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Coin
   layers:
   - Default
   - TransparentFX
@@ -44,12 +45,15 @@ TagManager:
   - name: Background
     uniqueID: 2105631209
     locked: 0
+  - name: Clouds
+    uniqueID: 1257829857
+    locked: 0
   - name: Platforms
     uniqueID: 1008695769
     locked: 0
-  - name: Barrels and Spikes
-    uniqueID: 1427748473
-    locked: 0
   - name: Hero
     uniqueID: 704482157
+    locked: 0
+  - name: Barrels, Spikes, Coins
+    uniqueID: 1427748473
     locked: 0
