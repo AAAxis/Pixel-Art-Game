@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
-public class ReloadLevel : MonoBehaviour
+namespace Scripts.Components
 {
-    public void Reload()       {
-        var scene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(scene.name);
+    public class ReloadLevel : MonoBehaviour
+    {
+        public void Reload()
+        {
+            var scene = SceneManager.GetActiveScene();
+            SceneManager.LoadScene(scene.name);
+        }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class HeroInputReader : MonoBehaviour
+namespace Scripts
+{
+    public class HeroInputReader : MonoBehaviour
     {
         [SerializeField] private Hero _hero;
 
@@ -18,4 +20,13 @@ public class HeroInputReader : MonoBehaviour
                 _hero.SaySomething();
             }
         }
-    }   
+
+        public void OnInteract(InputAction.CallbackContext context)
+        {
+            if (context.phase == InputActionPhase.Canceled)
+            {
+                _hero.Interact();
+            }
+        }
+    }
+} 

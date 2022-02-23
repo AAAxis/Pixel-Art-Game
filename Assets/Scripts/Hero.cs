@@ -1,55 +1,99 @@
-﻿using UnityEngine;
+﻿using Scripts.Components;
+using UnityEngine;
 
-
-public class Hero : MonoBehaviour
+namespace Scripts
 {
-    [SerializeField] private float _speed = 1f;
-    [SerializeField] private float _jumpPower = 1f;
-    [SerializeField] private LayerCheck _groundCheck;
-   
-    private Animator _animator;
-    private SpriteRenderer _sprite;
-    private Rigidbody2D _rigidbody;
-    private Vector2 _direction;
-    
-    public static int totalScore;
-
-    private void Awake()
+    public class Hero : MonoBehaviour
     {
-        _animator = GetComponent<Animator>();
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _sprite = GetComponent<SpriteRenderer>();
-    }
+        public static int totalScore;
+        [SerializeField] private float _speed = 1f;
+        [SerializeField] private float _jumpPower = 1f;
+        [SerializeField] private float _damageJumpPower = 1.5f;
 
-    private void FixedUpdate()
-    {
-        _rigidbody.velocity = new Vector2(_direction.x * _speed, _rigidbody.velocity.y);
+        [SerializeField] private LayerCheck _groundCheck;
+        private bool _isGrounded;
+        private bool _allowDoubleJump;
 
-        var isJumping = _direction.y > 0;
-        var isGrounded = IsGrounded();
+        private Rigidbody2D _rigidbody;
+        private Vector2 _direction;
 
-        if (isJumping)
+        private SpriteRenderer _sprite;
+        private Animator _animator;
+        private static readonly int isGroundKey = Animator.StringToHash("is-ground");
+        private static readonly int isRunningKey = Animator.StringToHash("is-running");
+        private static readonly int verticalVelocityKey = Animator.StringToHash("vertical-velocity");
+        private static readonly int hitKey = Animator.StringToHash("hit");
+
+        [SerializeField] private float _interactionRadius = 1f;
+        [SerializeField] private LayerMask _interactionLayer;
+        private Collider2D[] _interactResult = new Collider2D[1];
+
+        private void Awake()
         {
-            if (isGrounded && _rigidbody.velocity.y <= 0.1f)
-            {
-                _rigidbody.AddForce(Vector2.up * _jumpPower, ForceMode2D.Impulse);
-            }
-
-        }
-        else if (_rigidbody.velocity.y > 0)
-        {
-            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _rigidbody.velocity.y * 0.5f);
+            _rigidbody = GetComponent<Rigidbody2D>();
+            _animator = GetComponent<Animator>();
+            _sprite = GetComponent<SpriteRenderer>();
         }
 
-            _animator.SetBool("is -running", _direction.x != 0);
-            _animator.SetBool("is -ground", isGrounded);
-            _animator.SetFloat("vertical -velocity", _rigidbody.velocity.y);
+        private void Update()
+        {
+            _isGrounded = IsGrounded();
+        }
+
+        private void FixedUpdate()
+        {
+            var xVelocity = _direction.x * _speed;
+            var yVelocity = CalculateYVelocity();
+
+            _rigidbody.velocity = new Vector2(xVelocity, yVelocity);
+
+            _animator.SetBool(isRunningKey, _direction.x != 0);
+            _animator.SetBool(isGroundKey, _isGrounded);
+            _animator.SetFloat(verticalVelocityKey, _rigidbody.velocity.y);
 
             UpdateSpriteDirection();
+        }
 
-    }
+        private float CalculateJumpVelocity(float yVelocity)
+        {
+            var isFalling = _rigidbody.velocity.y <= 0.001f;
 
-    private void UpdateSpriteDirection()
+            if (!isFalling) return yVelocity;
+
+            if (_isGrounded)
+            {
+                yVelocity += _jumpPower;
+            }
+            else if (_allowDoubleJump)
+            {
+                yVelocity = _jumpPower;
+                _allowDoubleJump = false;
+            }
+
+            return yVelocity;
+        }
+
+        private float CalculateYVelocity()
+        {
+            var yVelocity = _rigidbody.velocity.y;
+            var isJumpPressing = _direction.y > 0;
+
+            if (_isGrounded) _allowDoubleJump = true;
+
+
+            if (isJumpPressing)
+            {
+                yVelocity = CalculateJumpVelocity(yVelocity);
+            }
+            else if (_rigidbody.velocity.y > 0)
+            {
+                yVelocity *= 0.5f;
+            }
+
+            return yVelocity;
+        }
+
+        private void UpdateSpriteDirection()
         {
             if (_direction.x > 0)
             {
@@ -61,21 +105,44 @@ public class Hero : MonoBehaviour
             }
         }
 
-    private bool IsGrounded()
-    {
-        return _groundCheck.isTouchingLayer;
+        private bool IsGrounded()
+        {
+            return _groundCheck.isTouchingLayer;
+        }
+
+        public void SetDirection(Vector2 direction)
+        {
+            _direction = direction;
+        }
+
+        public void SaySomething()
+        {
+            Debug.Log("Hello!");
+        }
+
+        public void TakeDamage()
+        {
+            _animator.SetTrigger(hitKey);
+            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _damageJumpPower);
+        }
+
+        public void TakeHeal()
+        {
+
+        }
+
+        public void Interact()
+        {
+            var size = Physics2D.OverlapCircleNonAlloc(transform.position, _interactionRadius, _interactResult, _interactionLayer);
+
+            for (int i = 0; i < size; i++)
+            {
+                var interactable = _interactResult[i].GetComponent<InteractableComponent>();
+                if (interactable != null)
+                {
+                    interactable.Interact();
+                }
+            }
+        }
     }
-
-    public void SetDirection(Vector2 direction)
-    {
-        _direction = direction;
-    }
-
-    public void SaySomething()
-    {
-        Debug.Log("Fire!");
-    }
-  
-
-
 }
