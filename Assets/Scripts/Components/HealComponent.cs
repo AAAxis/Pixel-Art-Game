@@ -7,7 +7,6 @@ namespace Scripts.Components
     public class HealComponent : MonoBehaviour
     {
         [SerializeField] private int _hpDelta;
-        [SerializeField] private GameObject _objToDestroy;
 
         public void ApplyHealth(GameObject target)
         {
@@ -16,12 +15,8 @@ namespace Scripts.Components
             if (healthComponent != null)
             {
                 healthComponent.ApplyHeal(_hpDelta);
+                Debug.Log("Heal 5");
             }
-        }
-        public void DestroyObject()
-        {
-            Destroy(_objToDestroy);
-            Debug.Log("Heal +5");
         }
     }
 }

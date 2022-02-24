@@ -5,7 +5,6 @@ namespace Scripts
 {
     public class Hero : MonoBehaviour
     {
-        public static int totalScore;
         [SerializeField] private float _speed = 1f;
         [SerializeField] private float _jumpPower = 1f;
         [SerializeField] private float _damageJumpPower = 1.5f;
@@ -17,7 +16,6 @@ namespace Scripts
         private Rigidbody2D _rigidbody;
         private Vector2 _direction;
 
-        private SpriteRenderer _sprite;
         private Animator _animator;
         private static readonly int isGroundKey = Animator.StringToHash("is-ground");
         private static readonly int isRunningKey = Animator.StringToHash("is-running");
@@ -28,11 +26,19 @@ namespace Scripts
         [SerializeField] private LayerMask _interactionLayer;
         private Collider2D[] _interactResult = new Collider2D[1];
 
+        [SerializeField] private SpawnComponent _footStepParticles;
+        [SerializeField] private SpawnComponent _jumpParticles;
+
+        [SerializeField] private ParticleSystem _coinHitParticles;
+
+
+        private int _coins = 0;
+
+
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody2D>();
             _animator = GetComponent<Animator>();
-            _sprite = GetComponent<SpriteRenderer>();
         }
 
         private void Update()
@@ -63,11 +69,13 @@ namespace Scripts
             if (_isGrounded)
             {
                 yVelocity += _jumpPower;
+                _jumpParticles.Spawn();
             }
             else if (_allowDoubleJump)
             {
                 yVelocity = _jumpPower;
                 _allowDoubleJump = false;
+                _jumpParticles.Spawn();
             }
 
             return yVelocity;
@@ -97,11 +105,11 @@ namespace Scripts
         {
             if (_direction.x > 0)
             {
-                _sprite.flipX = false;
+                transform.localScale = Vector3.one;
             }
             else if (_direction.x < 0)
             {
-                _sprite.flipX = true;
+                transform.localScale = new Vector3(-1, 1, 1);
             }
         }
 
@@ -124,11 +132,11 @@ namespace Scripts
         {
             _animator.SetTrigger(hitKey);
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _damageJumpPower);
-        }
 
-        public void TakeHeal()
-        {
-
+            if (_coins > 0)
+            {
+                SpawnCoins();
+            }
         }
 
         public void Interact()
@@ -143,6 +151,32 @@ namespace Scripts
                     interactable.Interact();
                 }
             }
+        }
+
+        public void SpawnFootDust()
+        {
+            _footStepParticles.Spawn();
+        }
+
+
+        public void AddCoins(int coins)
+        {
+            _coins += coins;
+
+            Debug.Log($"{coins} coins added. Total coins {_coins}");
+        }
+
+        private void SpawnCoins()
+        {
+            var numCoinsToSpawn = Mathf.Min(_coins, 5);
+            _coins -= numCoinsToSpawn;
+
+            var burst = _coinHitParticles.emission.GetBurst(0);
+            burst.count = numCoinsToSpawn;
+            _coinHitParticles.emission.SetBurst(0, burst);
+
+            _coinHitParticles.gameObject.SetActive(true);
+            _coinHitParticles.Play();
         }
     }
 }

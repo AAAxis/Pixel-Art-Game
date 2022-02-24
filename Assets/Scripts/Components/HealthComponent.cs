@@ -24,6 +24,7 @@ namespace Scripts.Components
         public void ApplyHeal(int healValue)
         {
             _onHeal?.Invoke();
+            
         }
     }
 }
